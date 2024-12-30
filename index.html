@@ -45,6 +45,10 @@
             border: 2px solid white;
             border-radius: 5px;
         }
+        #loading {
+            display: none;
+            color: yellow;
+        }
     </style>
 </head>
 <body>
@@ -52,6 +56,7 @@
     <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
     <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
     <br>
+    <div id="loading">Loading model...</div>
     <div id="webcam-container"></div>
     <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
     <div id="image-container"></div>
@@ -63,10 +68,18 @@
 
         // Load the model
         async function loadModel() {
-            const modelURL = URL + "model.json";
-            const metadataURL = URL + "metadata.json";
-            model = await tmImage.load(modelURL, metadataURL);
-            maxPredictions = model.getTotalClasses();
+            document.getElementById("loading").style.display = "block";
+            try {
+                const modelURL = URL + "model.json";
+                const metadataURL = URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+            } catch (error) {
+                console.error("Error loading model:", error);
+                alert("Failed to load model. Please check the console for details.");
+            } finally {
+                document.getElementById("loading").style.display = "none";
+            }
         }
 
         // Webcam functionality
@@ -98,30 +111,4 @@
                 const reader = new FileReader();
                 reader.onload = async function (e) {
                     const imgElement = document.createElement("img");
-                    imgElement.src = e.target.result;
-                    imgElement.height = 224;
-                    imgElement.width = 224;
-
-                    const imageContainer = document.getElementById("image-container");
-                    imageContainer.innerHTML = ""; 
-                    imageContainer.appendChild(imgElement);
-
-                    await predict(imgElement);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Prediction functionality
-        async function predict(input) {
-            const prediction = await model.predict(input);
-            updateLabels(prediction);
-        }
-
-        function updateLabels(predictions) {
-            labelContainer = document.getElementById("label-container");
-            labelContainer.innerHTML = ""; 
-            for (let i = 0; i < predictions.length; i++) {
-                const classPrediction =
-                    predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
-                labelContainer.appendChild(document.createElement("div")).innerHTML = classPrediction;
+                    imgElement
