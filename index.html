@@ -3,74 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Identifier</title>
+    <title>AI Model - Webcam & File Upload</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
         body {
+            background-color: #2c2c2c;
             font-family: 'Sans-serif';
-            background-color: #333; /* Dark grey background */
             color: white;
             text-align: center;
             margin: 0;
-            padding: 20px;
+            padding: 0;
         }
+
         h1 {
-            margin-bottom: 20px;
+            margin-top: 20px;
+            font-size: 2em;
         }
+
         button {
-            background-color: red; /* Red button */
+            background-color: #e74c3c;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 10px;
+            padding: 15px 30px;
+            margin: 20px;
+            font-size: 1em;
             cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: background-color 0.3s;
+            border-radius: 10px;
+            transition: background-color 0.3s ease;
         }
+
         button:hover {
-            background-color: darkred; /* Darker red on hover */
+            background-color: #c0392b;
         }
-        #webcam-container, #image-container, #label-container {
-            margin: 20px auto;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+
+        #webcam-container, #image-container {
+            margin-top: 30px;
+            display: inline-block;
         }
+
         #label-container {
+            margin: 20px auto;
+            width: 80%;
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Four columns for labels */
-            gap: 10px;
-            justify-items: center; /* Center align items in the grid */
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
         }
-        img {
-            margin: 10px;
-            border: 2px solid white;
+
+        #label-container div {
+            background-color: #444;
+            padding: 10px;
             border-radius: 5px;
+            text-align: center;
+        }
+
+        #image-upload {
+            display: none;
+        }
+
+        #loading-bar {
+            margin-top: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1 id="title">Vehicle Identifier</h1>
+    <h1 id="title">AI Model - Choose Your Input Method</h1>
     <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
     <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
     <br>
     <div id="webcam-container"></div>
-    <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
+    <input type="file" id="image-upload" accept="image/*" onchange="handleImageUpload(event)">
     <div id="image-container"></div>
     <div id="label-container"></div>
+
+    <div id="loading-bar">
+        <progress id="progress" max="100" value="0"></progress>
+        <p>Loading model, please wait...</p>
+    </div>
 
     <script type="text/javascript">
         const URL = "./";
         let model, webcam, labelContainer, maxPredictions;
 
-        // Load the model
+        // Load the model with a loading bar
         async function loadModel() {
+            const loadingBar = document.getElementById("loading-bar");
+            loadingBar.style.display = "block";
+
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
             model = await tmImage.load(modelURL, metadataURL);
             maxPredictions = model.getTotalClasses();
+
+            loadingBar.style.display = "none";  // Hide the loading bar after loading
         }
 
         // Webcam functionality
@@ -123,4 +149,14 @@
         }
 
         function updateLabels(predictions) {
-            labelContainer = document.getElementBy
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = ""; 
+            for (let i = 0; i < predictions.length; i++) {
+                const classPrediction =
+                    predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
+                labelContainer.appendChild(document.createElement("div")).innerHTML = classPrediction;
+            }
+        }
+    </script>
+</body>
+</html>
