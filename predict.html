@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model - Webcam & File Upload</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+    <h1 id="title">AI Model - Choose Your Input Method</h1>
+    <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
+    <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
+    <br>
+    <div id="webcam-container"></div>
+    <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
+    <div id="image-container"></div>
+    <div id="label-container"></div>
+
+    <script type="text/javascript">
+        const URL = "./";
+        let model, webcam, labelContainer, maxPredictions;
+
+        // Load the model
+        async function loadModel() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+        }
+
+        // Webcam functionality
+        async function startWebcam() {
+            await loadModel();
+            const flip = true; 
+            webcam = new tmImage.Webcam(500, 400, flip);
+            await webcam.setup(); 
+            await webcam.play();
+            window.requestAnimationFrame(webcamLoop);
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+        }
+
+        async function webcamLoop() {
+            webcam.update(); 
+            await predict(webcam.canvas);
+            window.requestAnimationFrame(webcamLoop);
+        }
+
+        // File upload functionality
+        async function uploadImage() {
+            await loadModel();
+            document.getElementById('image-upload').click();
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    const imgElement = document.createElement("img");
+                    imgElement.src = e.target.result;
+                    imgElement.height = 224;
+                    imgElement.width = 224;
+
+                    const imageContainer = document.getElementById("image-container");
+                    imageContainer.innerHTML = ""; 
+                    imageContainer.appendChild(imgElement);
+
+                    await predict(imgElement);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Prediction functionality
+        async function predict(input) {
+            const prediction = await model.predict(input);
+            updateLabels(prediction);
+        }
+
+        function updateLabels(predictions) {
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = ""; 
+            for (let i = 0; i < predictions.length; i++) {
+                const classPrediction =
+                    predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
+                labelContainer.appendChild(document.createElement("div")).innerHTML = classPrediction;
+            }
+        }
+    </script>
+</body>
+</html>
