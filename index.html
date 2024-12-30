@@ -6,6 +6,31 @@
     <title>AI Model - Webcam & File Upload</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <style>
+        body {
+            background-color: #2E2E2E;
+            color: white;
+            font-family: 'Sans-serif';
+            text-align: center;
+        }
+        button {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+        }
+        #webcam-container, #image-container, #label-container {
+            margin-top: 20px;
+        }
+        #label-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            justify-items: center;
+        }
+    </style>
 </head>
 <body>
     <h1 id="title">AI Model - Choose Your Input Method</h1>
