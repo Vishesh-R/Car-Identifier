@@ -12,6 +12,7 @@
             color: white;
             font-family: 'Sans-serif';
             text-align: center;
+            background-attachment: fixed;
         }
         h1 {
             font-size: calc(2em + 12px); /* Increased heading size by 6 more */
@@ -32,24 +33,10 @@
         }
         #image-container {
             margin-bottom: 50px; /* Increased gap between image and class names */
-            width: 224px;
-            height: 224px;
-            background-color: grey; /* Grey placeholder background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 10px;
-            position: relative;
         }
         #image-container img {
-            border: 2px solid lightgrey; /* Light grey border when image is loaded */
+            border: 2px solid lightgrey; /* Light grey border to the image */
             border-radius: 10px;
-        }
-        #image-placeholder {
-            width: 100px;
-            height: 100px;
-            background-color: darkgrey; /* Dark grey image icon */
-            border-radius: 50%;
         }
         #label-container {
             display: grid;
@@ -93,11 +80,7 @@
     
     <div id="webcam-container"></div>
     <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
-    
-    <!-- Image placeholder with grey background and dark grey image icon -->
-    <div id="image-container">
-        <div id="image-placeholder"></div>
-    </div>
+    <div id="image-container"></div>
     
     <div id="label-container"></div>
 
