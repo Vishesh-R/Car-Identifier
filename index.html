@@ -8,13 +8,10 @@
     <script async src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
         body {
-            background-image: url('https://raw.githubusercontent.com/Vishesh-R/Vehicleidentifier/main/12442-front-of-black-sports-car-wallpaper-top-free-front-of-black.jpeg');
-            background-size: cover;
-            background-position: center;
+            background-color: #2e2e2e; /* Dark grey background */
             color: white;
             font-family: 'Sans-serif';
             text-align: center;
-            background-attachment: fixed;
         }
         h1 {
             font-size: calc(2em + 12px); /* Increased heading size by 6 more */
@@ -34,7 +31,25 @@
             margin-top: 20px;
         }
         #image-container {
-            margin-bottom: 30px; /* Increased gap between image and class names */
+            margin-bottom: 50px; /* Increased gap between image and class names */
+            width: 224px;
+            height: 224px;
+            background-color: grey; /* Grey placeholder background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            position: relative;
+        }
+        #image-container img {
+            border: 2px solid lightgrey; /* Light grey border when image is loaded */
+            border-radius: 10px;
+        }
+        #image-placeholder {
+            width: 100px;
+            height: 100px;
+            background-color: darkgrey; /* Dark grey image icon */
+            border-radius: 50%;
         }
         #label-container {
             display: grid;
@@ -45,41 +60,45 @@
         #label-container div {
             background-color: lightgrey;
             border-radius: 10px;
-            padding: 10px;
+            padding: 5px; /* Decreased padding */
             text-align: left;
             width: 150px; /* Uniform background size */
-            height: 50px; /* Uniform height for all */
-            display: flex;
-            align-items: center; /* Vertically center text */
         }
         #loading-bar {
-            width: 0;
-            height: 10px;
+            width: 40%; /* Decreased size to half */
+            height: 5px; /* Thinner */
             background-color: grey;
             border-radius: 5px;
             margin-top: 20px;
             transition: width 0.5s;
         }
         #loading-container {
-            width: 80%;
-            height: 10px;
+            width: 50%;
+            height: 5px;
             background-color: lightgrey;
             border-radius: 5px;
-            margin: 20px auto;
+            margin: 10px auto;
         }
     </style>
 </head>
 <body>
     <h1 id="title">Vehicle Identifier</h1>
+    <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
+    <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
+    
+    <!-- Loading bar moved below buttons -->
     <div id="loading-container">
         <div id="loading-bar"></div> <!-- Grey loading bar -->
     </div>
-    <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
-    <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
-    <br>
+    
     <div id="webcam-container"></div>
     <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
-    <div id="image-container"></div>
+    
+    <!-- Image placeholder with grey background and dark grey image icon -->
+    <div id="image-container">
+        <div id="image-placeholder"></div>
+    </div>
+    
     <div id="label-container"></div>
 
     <script type="text/javascript">
@@ -142,7 +161,7 @@
                     imgElement.width = 224;
 
                     const imageContainer = document.getElementById("image-container");
-                    imageContainer.innerHTML = ""; 
+                    imageContainer.innerHTML = ""; /* Clear placeholder */
                     imageContainer.appendChild(imgElement);
 
                     while(true) {
