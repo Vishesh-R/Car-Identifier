@@ -77,6 +77,10 @@
             document.getElementById('image-upload').click();
         }
 
+        function delay(ms) {
+             return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -93,6 +97,7 @@
 
                     while(true) {
                         await predict(imgElement);
+                        await delay(2000);
                     } 
                 };
                 reader.readAsDataURL(file);
