@@ -92,6 +92,17 @@
 
         // Load the model
         async function loadModel() {
+            document.getElementById("loading-bar").style.width = "0%"; // Reset loading bar
+            let loadingProgress = 0;
+            const loadingInterval = setInterval(() => {
+                loadingProgress += 10;
+                document.getElementById("loading-bar").style.width = `${loadingProgress}%`;
+                if (loadingProgress >= 100) {
+                    clearInterval(loadingInterval);
+                    document.getElementById("loading-bar").style.width = "100%"; // Fully loaded
+                }
+            }, 500);
+
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
             model = await tmImage.load(modelURL, metadataURL);
@@ -140,7 +151,7 @@
                     imageContainer.appendChild(imgElement);
 
                     // Show loading bar during prediction
-                    document.getElementById("loading-bar").style.width = "0%";
+                    document.getElementById("loading-bar").style.width = "0%"; // Reset the bar before prediction
 
                     while(true) {
                         await predict(imgElement);
@@ -153,12 +164,8 @@
 
         // Prediction functionality
         async function predict(input) {
-            document.getElementById("loading-bar").style.width = "50%"; // Start loading bar
             const prediction = await model.predict(input);
             updateLabels(prediction);
-            document.getElementById("loading-bar").style.width = "100%"; // End loading bar after prediction
-            await delay(500); // Wait before resetting the loading bar
-            document.getElementById("loading-bar").style.width = "0%"; // Reset loading bar
         }
 
         function updateLabels(predictions) {
