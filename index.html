@@ -4,21 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Identifier</title>
-    <script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
         body {
-            background-image: url('https://raw.githubusercontent.com/Vishesh-R/Vehicleidentifier/main/12442-front-of-black-sports-car-wallpaper-top-free-front-of-black.jpeg
-'); /* Add car-related design */
-            background-size: cover;
-            background-position: center;
+            background-color: #2E2E2E;
             color: white;
             font-family: 'Sans-serif';
             text-align: center;
-            background-attachment: fixed; /* Optimized for better UX */
         }
         h1 {
-            font-size: calc(2em + 6px); /* Heading text 6px larger */
+            font-size: calc(2em + 4px); /* Heading text 4px larger */
         }
         button {
             background-color: red;
@@ -40,7 +36,7 @@
         #label-container {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
-            gap: 0px; /* Reduced gap between columns */
+            gap: 5px; /* Decreased gap between columns */
             justify-items: center; /* Center-align columns */
         }
         #label-container div {
@@ -48,30 +44,14 @@
             border-radius: 10px; /* Rounded corners for each class name */
             padding: 10px;
             text-align: left; /* Left-align class names */
-            width: 150px; /* Uniform background size */
         }
-        #loading-bar {
-            width: 0;
-            height: 10px;
-            background-color: grey;
-            border-radius: 5px;
-            margin-top: 20px;
-            transition: width 0.5s;
-        }
-        #loading-container {
-            width: 80%;
-            height: 10px;
-            background-color: lightgrey;
-            border-radius: 5px;
-            margin: 20px auto;
+        #label-container div:nth-child(34) {
+            grid-column: 2; /* Center column for 34th row */
         }
     </style>
 </head>
 <body>
     <h1 id="title">Vehicle Identifier</h1>
-    <div id="loading-container">
-        <div id="loading-bar"></div> <!-- Grey loading bar -->
-    </div>
     <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
     <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
     <br>
@@ -88,21 +68,12 @@
         async function loadModel() {
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
-            updateLoadingBar(20); // Update loading bar to 20%
             model = await tmImage.load(modelURL, metadataURL);
-            updateLoadingBar(100); // Update loading bar to 100% when loaded
             maxPredictions = model.getTotalClasses();
-        }
-
-        // Update loading bar progress
-        function updateLoadingBar(percentage) {
-            const loadingBar = document.getElementById("loading-bar");
-            loadingBar.style.width = percentage + "%";
         }
 
         // Webcam functionality
         async function startWebcam() {
-            updateLoadingBar(0); // Reset loading bar when reloading
             await loadModel();
             const flip = true; 
             webcam = new tmImage.Webcam(500, 400, flip);
@@ -120,7 +91,6 @@
 
         // File upload functionality
         async function uploadImage() {
-            updateLoadingBar(0); // Reset loading bar when reloading
             await loadModel();
             document.getElementById('image-upload').click();
         }
