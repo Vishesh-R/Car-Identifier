@@ -13,6 +13,9 @@
             font-family: 'Sans-serif';
             text-align: center;
         }
+        h1 {
+            font-size: calc(2em + 4px); /* Heading text 4px larger */
+        }
         button {
             background-color: red;
             color: white;
@@ -20,7 +23,9 @@
             border: none;
             cursor: pointer;
             margin: 10px;
-            border-radius: 10px; /* Rounded corners for buttons */
+            border-radius: 10px;
+            font-size: calc(1em + 2px); /* Button text 2px larger */
+            font-weight: bold; /* Button text bold */
         }
         #webcam-container, #image-container {
             margin-top: 20px;
@@ -31,11 +36,11 @@
         #label-container {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
-            gap: 10px;
-            justify-items: left;
+            gap: 5px; /* Decreased gap between columns */
+            justify-items: center; /* Center-align columns */
         }
         #label-container div {
-            background-color: rgba(255, 0, 0, 0.7); /* Dark-translucent red background */
+            background-color: lightgrey; /* Light grey background */
             border-radius: 10px; /* Rounded corners for each class name */
             padding: 10px;
             text-align: left; /* Left-align class names */
