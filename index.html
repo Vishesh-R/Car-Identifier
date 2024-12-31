@@ -56,7 +56,11 @@
             height: auto; /* Make height just slightly larger than the text */
         }
         #label-container .highlight {
-            background-color: red; /* Highlight with red background */
+            background-color: red; /* Highlight with strong red background */
+            color: white; /* Change text color to white for better contrast */
+        }
+        #label-container .highlight-second {
+            background-color: lightcoral; /* Lighter red background for second highest */
             color: white; /* Change text color to white for better contrast */
         }
         #loading-bar-container {
@@ -177,25 +181,36 @@
             labelContainer.innerHTML = ""; 
 
             let highestProbability = -1;
+            let secondHighestProbability = -1;
             let highestClassIndex = -1;
+            let secondHighestClassIndex = -1;
 
-            // Find the class with the highest probability
+            // Find the class with the highest and second-highest probability
             for (let i = 0; i < predictions.length; i++) {
                 if (predictions[i].probability > highestProbability) {
+                    secondHighestProbability = highestProbability;
+                    secondHighestClassIndex = highestClassIndex;
                     highestProbability = predictions[i].probability;
                     highestClassIndex = i;
+                } else if (predictions[i].probability > secondHighestProbability) {
+                    secondHighestProbability = predictions[i].probability;
+                    secondHighestClassIndex = i;
                 }
             }
 
-            // Display all predictions with highlighting the highest
+            // Display all predictions with highlighting the highest and second-highest
             for (let i = 0; i < predictions.length; i++) {
                 const classPrediction = predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
                 const div = document.createElement("div");
                 div.innerHTML = classPrediction;
 
-                // Highlight the class with the highest probability
+                // Highlight the highest probability class
                 if (i === highestClassIndex) {
                     div.classList.add("highlight");
+                }
+                // Highlight the second-highest probability class
+                else if (i === secondHighestClassIndex) {
+                    div.classList.add("highlight-second");
                 }
 
                 labelContainer.appendChild(div);
