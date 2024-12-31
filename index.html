@@ -55,6 +55,10 @@
             align-items: center; /* Vertically center text */
             height: auto; /* Make height just slightly larger than the text */
         }
+        #label-container .highlight {
+            background-color: red; /* Highlight with red background */
+            color: white; /* Change text color to white for better contrast */
+        }
         #loading-bar-container {
             width: 100%;
             margin: 10px 0;
@@ -171,10 +175,30 @@
         function updateLabels(predictions) {
             labelContainer = document.getElementById("label-container");
             labelContainer.innerHTML = ""; 
+
+            let highestProbability = -1;
+            let highestClassIndex = -1;
+
+            // Find the class with the highest probability
             for (let i = 0; i < predictions.length; i++) {
-                const classPrediction =
-                    predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
-                labelContainer.appendChild(document.createElement("div")).innerHTML = classPrediction;
+                if (predictions[i].probability > highestProbability) {
+                    highestProbability = predictions[i].probability;
+                    highestClassIndex = i;
+                }
+            }
+
+            // Display all predictions with highlighting the highest
+            for (let i = 0; i < predictions.length; i++) {
+                const classPrediction = predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
+                const div = document.createElement("div");
+                div.innerHTML = classPrediction;
+
+                // Highlight the class with the highest probability
+                if (i === highestClassIndex) {
+                    div.classList.add("highlight");
+                }
+
+                labelContainer.appendChild(div);
             }
         }
     </script>
