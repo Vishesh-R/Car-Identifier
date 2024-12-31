@@ -40,9 +40,10 @@
         }
         #label-container {
             display: grid;
-            grid-template-columns: repeat(3, auto); /* Bring columns closer */
-            gap: 0px; /* Minimized gap between columns */
-            justify-items: center;
+            grid-template-columns: repeat(3, auto); /* Flexible columns */
+            gap: 0px; /* Removed gap between columns */
+            justify-content: center; /* Center-align the grid */
+            align-items: center;
         }
         #label-container div {
             background-color: lightgrey;
