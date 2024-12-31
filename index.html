@@ -20,15 +20,28 @@
             border: none;
             cursor: pointer;
             margin: 10px;
+            border-radius: 10px; /* Rounded corners for buttons */
         }
-        #webcam-container, #image-container, #label-container {
+        #webcam-container, #image-container {
             margin-top: 20px;
+        }
+        #image-container {
+            margin-bottom: 30px; /* Increased gap between image and class names */
         }
         #label-container {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
             gap: 10px;
-            justify-items: center;
+            justify-items: left;
+        }
+        #label-container div {
+            background-color: rgba(255, 0, 0, 0.7); /* Dark-translucent red background */
+            border-radius: 10px; /* Rounded corners for each class name */
+            padding: 10px;
+            text-align: left; /* Left-align class names */
+        }
+        #label-container div:nth-child(34) {
+            grid-column: 2; /* Center column for 34th row */
         }
     </style>
 </head>
