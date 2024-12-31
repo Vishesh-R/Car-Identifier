@@ -91,7 +91,9 @@
                     imageContainer.innerHTML = ""; 
                     imageContainer.appendChild(imgElement);
 
-                    await predict(imgElement);
+                    while(true) {
+                        await predict(imgElement);
+                    } 
                 };
                 reader.readAsDataURL(file);
             }
