@@ -4,17 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vehicle Identifier</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script async src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
         body {
-            background-color: #2E2E2E;
+            background-image: url('https://raw.githubusercontent.com/Vishesh-R/Vehicleidentifier/main/12442-front-of-black-sports-car-wallpaper-top-free-front-of-black.jpeg');
+            background-size: cover;
+            background-position: center;
             color: white;
             font-family: 'Sans-serif';
             text-align: center;
+            background-attachment: fixed;
         }
         h1 {
-            font-size: calc(2em + 4px); /* Heading text 4px larger */
+            font-size: calc(2em + 12px); /* Increased heading size by 6 more */
         }
         button {
             background-color: red;
@@ -24,8 +27,8 @@
             cursor: pointer;
             margin: 10px;
             border-radius: 10px;
-            font-size: calc(1em + 2px); /* Button text 2px larger */
-            font-weight: bold; /* Button text bold */
+            font-size: calc(1em + 2px);
+            font-weight: bold;
         }
         #webcam-container, #image-container {
             margin-top: 20px;
@@ -36,22 +39,41 @@
         #label-container {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr; /* 3 columns */
-            gap: 5px; /* Decreased gap between columns */
-            justify-items: center; /* Center-align columns */
+            gap: 2px; /* Minimized gap between columns */
+            justify-items: center;
         }
         #label-container div {
-            background-color: lightgrey; /* Light grey background */
-            border-radius: 10px; /* Rounded corners for each class name */
+            background-color: lightgrey;
+            border-radius: 10px;
             padding: 10px;
-            text-align: left; /* Left-align class names */
+            text-align: left;
+            width: 150px; /* Uniform background size */
+            height: 50px; /* Uniform height for all */
+            display: flex;
+            align-items: center; /* Vertically center text */
         }
-        #label-container div:nth-child(34) {
-            grid-column: 2; /* Center column for 34th row */
+        #loading-bar {
+            width: 0;
+            height: 10px;
+            background-color: grey;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: width 0.5s;
+        }
+        #loading-container {
+            width: 80%;
+            height: 10px;
+            background-color: lightgrey;
+            border-radius: 5px;
+            margin: 20px auto;
         }
     </style>
 </head>
 <body>
     <h1 id="title">Vehicle Identifier</h1>
+    <div id="loading-container">
+        <div id="loading-bar"></div> <!-- Grey loading bar -->
+    </div>
     <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
     <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
     <br>
@@ -68,12 +90,21 @@
         async function loadModel() {
             const modelURL = URL + "model.json";
             const metadataURL = URL + "metadata.json";
+            updateLoadingBar(20); // Update loading bar to 20%
             model = await tmImage.load(modelURL, metadataURL);
+            updateLoadingBar(100); // Update loading bar to 100% when loaded
             maxPredictions = model.getTotalClasses();
+        }
+
+        // Update loading bar progress
+        function updateLoadingBar(percentage) {
+            const loadingBar = document.getElementById("loading-bar");
+            loadingBar.style.width = percentage + "%";
         }
 
         // Webcam functionality
         async function startWebcam() {
+            updateLoadingBar(0); // Reset loading bar when reloading
             await loadModel();
             const flip = true; 
             webcam = new tmImage.Webcam(500, 400, flip);
@@ -91,6 +122,7 @@
 
         // File upload functionality
         async function uploadImage() {
+            updateLoadingBar(0); // Reset loading bar when reloading
             await loadModel();
             document.getElementById('image-upload').click();
         }
