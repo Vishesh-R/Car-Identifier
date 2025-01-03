@@ -59,10 +59,6 @@
             background-color: red; /* Highlight with strong red background */
             color: white; /* Change text color to white for better contrast */
         }
-        #label-container .highlight-second {
-            background-color: lightcoral; /* Lighter red background for second highest */
-            color: white; /* Change text color to white for better contrast */
-        }
         #loading-bar-container {
             width: 100%;
             margin: 10px 0;
@@ -846,7 +842,6 @@
             webcam.update(); 
             await predict(webcam.canvas);
             window.requestAnimationFrame(webcamLoop);
- ```javascript
         }
 
         // File upload functionality
@@ -856,7 +851,7 @@
         }
 
         function delay(ms) {
-             return new Promise(resolve => setTimeout(resolve, ms));
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
         function handleImageUpload(event) {
@@ -876,7 +871,7 @@
                     // Show loading bar during prediction
                     document.getElementById("loading-bar").style.width = "0%"; // Reset the bar before prediction
 
-                    while(true) {
+                    while (true) {
                         await predict(imgElement);
                         await delay(2000);
                     } 
