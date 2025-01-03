@@ -59,6 +59,10 @@
             background-color: red; /* Highlight with strong red background */
             color: white; /* Change text color to white for better contrast */
         }
+        #label-container .highlight-second {
+            background-color: lightcoral; /* Lighter red background for second highest */
+            color: white; /* Change text color to white for better contrast */
+        }
         #loading-bar-container {
             width: 100%;
             margin: 10px 0;
@@ -72,14 +76,8 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        #details-container {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #444; /* Darker background for details */
-            border-radius: 5px;
-            display: inline-block;
-            text-align: left;
-            max-width: 300px; /* Limit width for better readability */
+        #label-container div:last-child {
+            grid-column: 2 / 3; /* Move the last class to the middle column */
         }
     </style>
 </head>
@@ -95,718 +93,10 @@
         <div id="loading-bar"></div>
     </div>
     <div id="label-container"></div>
-    <div id="details-container">
-        <h2>Vehicle Details</h2>
-        <div id="vehicle-details"></div>
-    </div>
 
     <script type="text/javascript">
         const URL = "./";
         let model, webcam, labelContainer, maxPredictions;
-
-        // Vehicle details associated with class names
-        const vehicleDetails = {
-            "Audi A4": {
-                price: "₹43 lakh – ₹50 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 15–17 km/l",
-                safetyRating : "5-star Euro NCAP",
-                seats: 5
-            },
-            "Audi A6": {
-                price: "₹60 lakh – ₹70 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 15–17 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Audi Q3": {
-                price: "₹45 lakh – ₹50 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Audi Q5": {
-                price: "₹60 lakh – ₹70 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 15–17 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Audi Q7": {
-                price: "₹85 lakh – ₹90 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 7
-            },
-            "BMW 3 Series": {
-                price: "₹45 lakh – ₹55 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 15–17 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "BMW 5 Series": {
-                price: "₹60 lakh – ₹70 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 15–17 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "BMW 7 Series": {
-                price: "₹1 crore – ₹1.5 crore",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "BMW X1": {
-                price: "₹45 lakh – ₹50 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 15–17 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "BMW X5": {
-                price: "₹85 lakh – ₹90 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "BYD Atto 3": {
-                price: "₹35 lakh – ₹40 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 400 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Citroën C3": {
-                price: "₹6 lakh – ₹8 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 18–20 km/l",
-                safetyRating: "4-star Euro NCAP",
-                seats: 5
-            },
-            "Citroën C5 Aircross": {
-                price: "₹35 lakh – ₹40 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 18–20 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Ford EcoSport": {
-                price: "₹8 lakh – ₹12 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 15–17 km/l; Diesel: 18–20 km/l",
-                safetyRating: "4-star Euro NCAP",
-                seats: 5
-            },
-            "Ford Endeavour": {
-                price: "₹35 lakh – ₹40 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 7
-            },
-            "Honda Amaze": {
-                price: "₹7 lakh – ₹9 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 18–20 km /l; Diesel: 24–26 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Honda City": {
-                price: "₹11 lakh – ₹15 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 24–26 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Honda CR-V": {
-                price: "₹30 lakh – ₹35 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Honda Jazz": {
-                price: "₹8 lakh – ₹10 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Honda WR-V": {
-                price: "₹9 lakh – ₹12 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 24–26 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Hyundai Alcazar": {
-                price: "₹16 lakh – ₹20 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 6 or 7
-            },
-            "Hyundai Creta": {
-                price: "₹10 lakh – ₹17 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 16–17 km/l; Diesel: 19–21 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 5
-            },
-            "Hyundai i10": {
-                price: "₹5 lakh – ₹7 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 18–20 km/l",
-                safetyRating: "2-star Global NCAP",
-                seats: 5
-            },
-            "Hyundai i20": {
-                price: "₹7 lakh – ₹10 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 21–23 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 5
-            },
-            "Hyundai Ioniq 5": {
-                price: "₹45 lakh – ₹50 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 400 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Hyundai Ioniq 6": {
-                price: "₹50 lakh – ₹55 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 614 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Hyundai Kona Electric": {
-                price: "₹25 lakh – ₹30 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 452 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Hyundai Tucson": {
-                price: "₹22 lakh – ₹30 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Hyundai Venue": {
-                price: "₹7 lakh – ₹12 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 21–23 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 5
-            },
-            "Hyundai Verna": {
-                price: "₹9 lakh – ₹15 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 21–23 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 5
-            },
-            "Jaguar F-Pace": {
-                price: "₹75 lakh – ₹1 crore",
-                fuelOptions: " Petrol, Diesel",
-                mileage: "Petrol: 8–10 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Jaguar XE": {
-                price: "₹45 lakh – ₹55 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 14–16 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Jeep Compass": {
-                price: "₹18.99 lakh – ₹30 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Jeep Meridian": {
-                price: "₹24.99 lakh – ₹35 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 11.5 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 7
-            },
-            "Kia Carens": {
-                price: "₹10.90 lakh – ₹17 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7
-            },
-            "Kia Carnival": {
-                price: "₹24.99 lakh – ₹33 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 14.85 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7 or 8
-            },
-            "Kia Seltos": {
-                price: "₹10.90 lakh – ₹20 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 5
-            },
-            "Kia Sonet": {
-                price: "₹7 lakh – ₹13 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 21–23 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 5
-            },
-            "Land Rover Discovery Sport": {
-                price: "₹60 lakh – ₹75 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 8–10 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5 or 7
-            },
-            "Land Rover Range Rover Evoque": {
-                price: "₹70 lakh – ₹90 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 8–10 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mahindra Alturas G4": {
-                price: "₹27.70 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 11.5 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7
-            },
-            "Mahindra Bolero": {
-                price: "₹9 lakh – ₹10 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 15–17 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 7
-            },
-            "Mahindra Marazzo": {
-                price: "₹13 lakh – ₹15 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7
-            },
-            "Mahindra Scorpio": {
-                price: "₹12 lakh – ₹20 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 14–16 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7
-            },
-            "Mahindra Thar": {
-                price: "₹10 lakh – ₹15 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 4
-            },
-            "Mahindra XUV300": {
-                price: "₹8 lakh – ₹ 12 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 21–23 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5
-            },
-            "Mahindra XUV400 Electric": {
-                price: "₹15 lakh – ₹20 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 375 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mahindra XUV700": {
-                price: "₹14 lakh – ₹22 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5 or 7
-            },
-            "Maruti Suzuki Alto": {
-                price: "₹3.99 lakh – ₹5.03 lakh",
-                fuelOptions: "Petrol, CNG",
-                mileage: "Petrol: 22–24 km/l; CNG: 31–33 km/kg",
-                safetyRating: "2-star Global NCAP",
-                seats: 4
-            },
-            "Maruti Suzuki Baleno": {
-                price: "₹6.66 lakh – ₹9.46 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 22–24 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki Celerio": {
-                price: "₹5.36 lakh – ₹7.14 lakh",
-                fuelOptions: "Petrol, CNG",
-                mileage: "Petrol: 23–26 km/l; CNG: 30–35 km/kg",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki Dzire": {
-                price: "₹6.79 lakh – ₹9.18 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 23–24 km/l; Diesel: 24–26 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki Ertiga": {
-                price: "₹8.69 lakh – ₹12.79 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 19–20 km/l; Diesel: 24–25 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 7
-            },
-            "Maruti Suzuki Grand Vitara": {
-                price: "₹10.87 lakh – ₹19.99 lakh",
-                fuelOptions: "Petrol, Hybrid",
-                mileage: "Petrol: 16–18 km/l; Hybrid: 19–27 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki Jimny": {
-                price: "₹12.74 lakh – ₹15.74 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 15–17 km/l",
-                safetyRating: "3-star Global NCAP",
-                seats: 4
-            },
-            "Maruti Suzuki S-Cross": {
-                price: "₹8.39 lakh – ₹12.39 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 18–20 km/l; Diesel: 22–24 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki Swift": {
-                price: "₹6.49 lakh – ₹8.29 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 23–24 km/l; Diesel: 24–26 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki Vitara Brezza": {
-                price: "₹8.34 lakh – ₹12.14 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Maruti Suzuki WagonR": {
-                price: "₹5.54 lakh – ₹7.42 lakh",
-                fuelOptions: "Petrol, CNG",
-                mileage: "Petrol: 22–24 km/l; CNG: 30–35 km/kg",
-                safetyRating: "2-star Global NC AP",
-                seats: 5
-            },
-            "Mercedes-Benz A-Class": {
-                price: "₹35 lakh – ₹45 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 12–14 km/l; Diesel: 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mercedes-Benz C-Class": {
-                price: "₹55 lakh – ₹75 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 14–16 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mercedes-Benz E-Class": {
-                price: "₹75 lakh – ₹1 crore",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 8–10 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mercedes-Benz EQB": {
-                price: "₹75 lakh – ₹85 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 400 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mercedes-Benz GLC": {
-                price: "₹75 lakh – ₹90 lakh",
-                fuelOptions: "Petrol, Diesel, Hybrid",
-                mileage: "Petrol: 10–12 km/l; Diesel: 14–16 km/l; Hybrid: 20–22 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Mercedes-Benz GLE": {
-                price: "₹90 lakh – ₹1.5 crore",
-                fuelOptions: "Petrol, Diesel, Hybrid",
-                mileage: "Petrol: 8–10 km/l; Diesel: 12–14 km/l; Hybrid: 20–22 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5 or 7
-            },
-            "MG Astor": {
-                price: "₹10.82 lakh – ₹18.69 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 14–16 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "MG Gloster": {
-                price: "₹30 lakh – ₹40 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 12–14 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 7
-            },
-            "MG Hector": {
-                price: "₹14 lakh – ₹22.57 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 13–15 km/l; Diesel: 17–19 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5 or 7
-            },
-            "MG ZS EV": {
-                price: "₹18.98 lakh onwards",
-                fuelOptions: "Electric",
-                range: "Approximately 419 km on a full charge",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Nissan Kicks": {
-                price: "₹9.50 lakh onwards",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 13–15 km/l; Diesel: 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Nissan Magnite": {
-                price: "₹5.60 lakh – ₹10 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 18–20 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Porsche Cayenne": {
-                price: "₹1 crore – ₹1.5 crore",
-                fuelOptions: "Petrol, Diesel, Hybrid",
-                mileage: "Petrol: 8–10 km/l; Diesel: 12–14 km/l; Hybrid: 30–35 km/l (combined)",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Porsche Macan": {
-                price: "₹85 lakh – ₹1.2 crore",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 10–12 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Renault Duster": {
-                price: "₹9 lakh – ₹14 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 13–15 km/l; Diesel: 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Renault Kwid": {
-                price: "₹4 lakh – ₹5.5 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 22–24 km/l",
-                safetyRating: "2-star Global NCAP",
-                seats: 5
-            },
-            "Renault Triber": {
-                price: "₹5 lakh – ₹7 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 19–20 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7
-            },
-            "Skoda Kushaq": {
-                price: "₹10.89 lakh – ₹19.69 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Skoda Octavia": {
-                price: "₹26 lakh – ₹30 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 15–17 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Skoda Slavia": {
-                price: "₹10.49 lakh – ₹17.79 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Skoda Superb": {
-                price: "₹30 lakh – ₹35 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 14–16 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Tata Altroz": {
-                price: "₹5.99 lakh – ₹9.99 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 18–20 km/l; Diesel: 23–25 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5
-            },
-            "Tata Harrier": {
-                price: "₹14 lakh – ₹21 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 16–18 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5
-            },
-            "Tata Nexon": {
-                price: "₹7 lakh – ₹13 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 17–19 km/l; Diesel: 21–23 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5
-            },
-            "Tata Nexon EV": {
-                price: "₹14 lakh – ₹17 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 312 km on a full charge",
-                safetyRating: "5-star Global NCAP",
-                seats: 5
-            },
-            "Tata Punch": {
-                price: "₹5 lakh – ₹8 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 18–20 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 5
-            },
-            "Tata Safari": {
-                price: "₹15 lakh – ₹23 lakh",
-                fuelOptions: "Diesel",
-                mileage: "Approximately 14–16 km/l",
-                safetyRating: "5-star Global NCAP",
-                seats: 7
-            },
-            "Tata Tiago": {
-                price: "₹5 lakh – ₹7 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 19–23 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Tata Tiago EV": {
-                price: "₹8 lakh – ₹10 lakh",
-                fuelOptions: "Electric",
-                range: "Approximately 250 km on a full charge",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Tata Tigor": {
-                price: "₹5 lakh – ₹7 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 19–21 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Toyota Fortuner": {
-                price: "₹32 lakh – ₹50 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 10–12 km/l; Diesel: 12–14 km/l",
-                safetyRating: "5-star ASEAN NCAP",
-                seats: 7
-            },
-            "Toyota Glanza": {
-                price: "₹8 lakh – ₹10 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 19–23 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Toyota Hyryder": {
-                price: "₹15 lakh – ₹23 lakh",
-                fuelOptions: "Petrol, Hybrid",
-                mileage: "Petrol: 16–18 km/l; Hybrid: 21–23 km/l",
-                safetyRating: "5-star ASEAN NCAP",
-                seats: 5
-            },
-            "Toyota Innova Crysta": {
-                price: "₹18 lakh – ₹27 lakh",
-                fuelOptions: "Petrol, Diesel",
-                mileage: "Petrol: 9–12 km/l; Diesel: 12–15 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 7 or 8
-            },
-            "Toyota Urban Cruiser": {
-                price: "₹8 lakh – ₹11 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Volkswagen Polo": {
-                price: "₹7 lakh – ₹11 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 17–19 km/l",
-                safetyRating: "4-star Global NCAP",
-                seats: 5
-            },
-            "Volkswagen Taigun": {
-                price: "₹11 lakh – ₹19 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Volkswagen Virtus": {
-                price: "₹11 lakh – ₹18 lakh",
-                fuelOptions: "Petrol",
-                mileage: "Approximately 16–18 km/l",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Volvo XC40": {
-                price: "₹45 lakh – ₹60 lakh",
-                fuelOptions: "Petrol, Electric",
-                mileage: "Petrol: 12–14 km/l; Electric: 400 km (full charge)",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Volvo XC60": {
-                price: "₹70 lakh – ₹75 lakh",
-                fuelOptions: "Petrol, Hybrid",
-                mileage: "Petrol: 10–12 km/l; Hybrid: 30–35 km/l (combined)",
-                safetyRating: "5-star Euro NCAP",
-                seats: 5
-            },
-            "Volvo XC90": {
-                price: "₹95 lakh – ₹1.2 crore",
-                fuelOptions: "Petrol, Hybrid",
-                mileage: "Petrol: 10–12 km/l; Hybrid: 30–35 km/l (combined)",
-                safetyRating: "5-star Euro NCAP",
-                seats: 7
-            }
-        };
 
         // Load the model
         async function loadModel() {
@@ -851,7 +141,7 @@
         }
 
         function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
         function handleImageUpload(event) {
@@ -871,7 +161,7 @@
                     // Show loading bar during prediction
                     document.getElementById("loading-bar").style.width = "0%"; // Reset the bar before prediction
 
-                    while (true) {
+                    while(true) {
                         await predict(imgElement);
                         await delay(2000);
                     } 
@@ -889,21 +179,26 @@
         function updateLabels(predictions) {
             labelContainer = document.getElementById("label-container");
             labelContainer.innerHTML = ""; 
-            const vehicleDetailsContainer = document.getElementById("vehicle-details");
-            vehicleDetailsContainer.innerHTML = ""; // Clear previous details
 
             let highestProbability = -1;
+            let secondHighestProbability = -1;
             let highestClassIndex = -1;
+            let secondHighestClassIndex = -1;
 
-            // Find the class with the highest probability
+            // Find the class with the highest and second-highest probability
             for (let i = 0; i < predictions.length; i++) {
                 if (predictions[i].probability > highestProbability) {
+                    secondHighestProbability = highestProbability;
+                    secondHighestClassIndex = highestClassIndex;
                     highestProbability = predictions[i].probability;
                     highestClassIndex = i;
+                } else if (predictions[i].probability > secondHighestProbability) {
+                    secondHighestProbability = predictions[i].probability;
+                    secondHighestClassIndex = i;
                 }
             }
 
-            // Display all predictions
+            // Display all predictions with highlighting the highest and second-highest
             for (let i = 0; i < predictions.length; i++) {
                 const classPrediction = predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
                 const div = document.createElement("div");
@@ -912,19 +207,10 @@
                 // Highlight the highest probability class
                 if (i === highestClassIndex) {
                     div.classList.add("highlight");
-                    // Display the details of the highest probability class
-                    const className = predictions[i].className;
-                    const details = vehicleDetails[className];
-                    if (details) {
-                        vehicleDetailsContainer.innerHTML = `
-                            <strong>${className}</strong><br>
-                            Price: ${details.price}<br>
-                            Fuel Options: ${details.fuelOptions}<br>
-                            Mileage: ${details.mileage || details.range}<br>
-                            Safety Rating: ${details.safetyRating}<br>
-                            Seats: ${details.seats}
-                        `;
-                    }
+                }
+                // Highlight the second-highest probability class
+                else if (i === secondHighestClassIndex) {
+                    div.classList.add("highlight-second");
                 }
 
                 labelContainer.appendChild(div);
