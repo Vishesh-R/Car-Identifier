@@ -1,315 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Car Identifier</title>
-        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <style>
-            body {
-                background-image: url(./background_image.jpeg);
-                background-repeat: no-repeat;
-                background-position: center;
-                background-size: cover;
-                background-attachment: fixed;
-                color: white;
-                font-family: 'Sans-serif';
-                text-align: center;
-                margin-bottom: 100px;
-            }
-            h1 {
-                font-size: calc(2em + 12px);
-            }
-            button {
-                background-color: red;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                cursor: pointer;
-                margin: 10px;
-                border-radius: 5px;
-                font-size: calc(1em + 2px);
-                font-weight: bold;
-            }
-            #webcam-container, #image-container {
-                margin-top: 20px;
-            }
-            #image-container img {
-                border: 2px solid lightgrey;
-                border-radius: 10px;
-            }
-            #label-container {
-                display: grid;
-                grid-template-columns: repeat(3, auto); /* Flexible columns */
-                gap: 2px; /* Removed gap between columns */
-                justify-content: center; /* Center-align the grid */
-                align-items: center;
-            }
-            #label-container div {
-                background-color: rgba(211, 211, 211, 0.5);
-                border-radius: 5px;
-                padding: 8px;
-                text-align: left;
-                font-size: 20px;
-                width: 400px;
-                margin: auto;
-                margin-bottom: 5px;
-            }
-            #label-container div.highlight {
-                background-color: red;
-                color: white;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Identifier</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Your existing styles */
+    </style>
+</head>
+<body>
+    <h1 id="title">Car Identifier</h1>
+    <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
+    <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
+    <br>
+    <div id="webcam-container"></div>
+    <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
+    <div id="image-container"></div>
+    <div id="other-container"></div>
+    <br><br>
+    <div id="label-container"></div>
 
-            #other-container{
-                width: 100%;
-                display: grid;
-                grid-template-columns: repeat(3, auto); /* Flexible columns */
-                gap: 2px; /* Removed gap between columns */
-                justify-content: center; /* Center-align the grid */
-                align-items: center;
-                margin: auto;
-            }
-            #other-container div{
-                margin: 1px;
-                display: inline-block;
-                justify-content: center;
-                align-items: center;
-                background-color: rgb(169, 169, 169, 0.5);
-                color: white;
-                width: 250px;
-                height: 40px;
-                font-size: 18px;
-                border-radius: 5px;
-            }
+    <script type="text/javascript">
+        const URL = "./";
+        let model, webcam, labelContainer, maxPredictions, excelData = {}, topData = {};
 
-            #other-container div.highlight{
-                background-color: rgba(255, 0, 0);
-                color: rgb(255, 255, 255);
-            }
-            #other-container div.highlight-second{
-                background-color: rgb(255, 0, 0, 0.7);
-                color: rgb(255, 255, 255);
-            }
-            @media screen and (max-width:800px){
-                #other-container{
-                    grid-template-columns: repeat(2, auto);
-                }
-                #other-container div{
-                    width: 220px;
-                    height: 35px;
-                    font-size: 15px;
-                }
-                #label-container {
-                    grid-template-columns: repeat(1, auto);
-                }
-                #label-container div {
-                    font-size: 18px;
-                    width: 350px;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <h1 id="title">Car Identifier</h1>
-        <button id="webcam-start" type="button" onclick="startWebcam()">Use Webcam</button>
-        <button id="file-upload" type="button" onclick="uploadImage()">Upload Image</button>
-        <br>
-        <div id="webcam-container"></div>
-        <input type="file" id="image-upload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
-        <div id="image-container"></div>
-        <div id="other-container"></div>
-        <br><br>
-        <div id="label-container"></div>
+        // Load the Excel file
+        async function loadExcelFile() {
+            const response = await fetch('cars.xlsx'); // Replace with the correct path to your file
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+            topData = excelData.reduce((acc, row) => {
+                acc[row['Name']] = row; // Adjust 'CarClass' to match your Excel column header
+                return acc;
+            }, {});
+            console.log("Database loaded successfully:", topData);
+        }
 
-        <script type="text/javascript">
-            const URL = "./";
-            let model, webcam, labelContainer, maxPredictions, excelData = {}, topData = {};
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
 
-            // Load the Excel file
-            async function loadExcelFile() {
-                const response = await fetch('cars.xlsx'); // Replace with the correct path to your file
-                const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const sheetName = workbook.SheetNames[0];
-                excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-                topData = excelData.reduce((acc, row) => {
-                    acc[row['Name']] = row; // Adjust 'CarClass' to match your Excel column header
-                    return acc;
-                }, {});
-                console.log("Database loaded successfully:", topData);
-            }
+        // Load the model
+        async function loadModel() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+        }
 
+        // Start Webcam
+        async function startWebcam() {
+            await loadExcelFile();
+            await loadModel();
+            const flip = true; 
+            webcam = new tmImage.Webcam(500, 400, flip);
+            await webcam.setup();
+            await webcam.play();
+            window.requestAnimationFrame(webcamLoop);
+            document.getElementById("webcam-container").appendChild(webcam.canvas);
+        }
 
-            function delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
+        async function webcamLoop() {
+            webcam.update();
+            await predict(webcam.canvas);
+            window.requestAnimationFrame(webcamLoop);
+        }
 
-            // Load the model
-            async function loadModel() {
-                const modelURL = URL + "model.json";
-                const metadataURL = URL + "metadata.json";
-                model = await tmImage.load(modelURL, metadataURL);
-                maxPredictions = model.getTotalClasses();
-            }
+        // Upload Image
+        async function uploadImage() {
+            await loadExcelFile();
+            await loadModel();
+            document.getElementById('image-upload').click();
+        }
 
-            // Start Webcam
-            async function startWebcam() {
-                await loadExcelFile();
-                await loadModel();
-                const flip = true; 
-                webcam = new tmImage.Webcam(500, 400, flip);
-                await webcam.setup();
-                await webcam.play();
-                window.requestAnimationFrame(webcamLoop);
-                document.getElementById("webcam-container").appendChild(webcam.canvas);
-            }
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    const imgElement = document.createElement("img");
+                    imgElement.src = e.target.result;
+                    imgElement.height = 224;
+                    imgElement.width = 224;
 
-            async function webcamLoop() {
-                webcam.update();
-                await predict(webcam.canvas);
-                window.requestAnimationFrame(webcamLoop);
-            }
+                    const imageContainer = document.getElementById("image-container");
+                    imageContainer.innerHTML = "";
+                    imageContainer.appendChild(imgElement);
 
-            // Upload Image
-            async function uploadImage() {
-                await loadExcelFile();
-                await loadModel();
-                document.getElementById('image-upload').click();
-            }
-
-            function handleImageUpload(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = async function (e) {
-                        const imgElement = document.createElement("img");
-                        imgElement.src = e.target.result;
-                        imgElement.height = 224;
-                        imgElement.width = 224;
-    
-                        const imageContainer = document.getElementById("image-container");
-                        imageContainer.innerHTML = "";
-                        imageContainer.appendChild(imgElement);
-
-                        while(true){
-                            await predict(imgElement);
-                            await delay(1000);
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-
-            // Prediction
-            async function predict(input) {
-                const predictions = await model.predict(input);
-
-                // Sort predictions and pick the top 3
-                const sortedPredictions = predictions.sort((a, b) => b.probability - a.probability);
-                const topPredictions = sortedPredictions.slice(0, 3);
-
-                // Map predictions to their Excel details
-                const detailedPredictions = topPredictions.map(p => {
-                    const match = excelData.find(row => row.classNameName === p.classNameName);
-                    return { ...p, details: match || {} };
-                });
-
-                updateLabels(detailedPredictions);
-                updateOtherLabels(predictions);
-            }
-
-            // Update Labels
-            function updateLabels(predictions) {
-                labelContainer = document.getElementById("label-container");
-                labelContainer.innerHTML = "";
-
-                predictions.forEach(prediction => {
-                    const carClass = prediction.className;
-                    const probability = (prediction.probability * 100).toFixed(2);
-                    const details = topData[carClass];
-
-                    // Create a card container for each prediction
-                    const card = document.createElement("div");
-                    card.classList.add("prediction-card");
-
-                    // Add the car name and probability
-                    const header = document.createElement("h3");
-                    header.textContent = `${carClass} - ${probability}%`;
-                    card.appendChild(header);
-
-                    // Add the details in a structured format if available
-                    if (details) {
-                        const detailsList = document.createElement("ul");
-                        for (const key in details) {
-                            const listItem = document.createElement("li");
-                            listItem.textContent = `${key}: ${details[key]}`;
-                            detailsList.appendChild(listItem);
-                        }
-                        card.appendChild(detailsList);
-                    } else {
-                        const noDetails = document.createElement("p");
-                        noDetails.textContent = "Details not available.";
-                        card.appendChild(noDetails);
+                    while(true){
+                        await predict(imgElement);
+                        await delay(1000);
                     }
-
-                    // Append the card to the label container
-                    labelContainer.appendChild(card);
-                });
-
+                };
+                reader.readAsDataURL(file);
             }
+        }
 
-            function updateOtherLabels(predictions) {
-                labelOtherContainer = document.getElementById("other-container");
-                labelOtherContainer.innerHTML = "";
+        // Refresh Interface
+        function refreshInterface() {
+            // Clear previous predictions
+            document.getElementById("label-container").innerHTML = "";
+            document.getElementById("other-container").innerHTML = "";
+        }
 
-                let highestProbability = -1;
-                let secondHighestProbability = -1;
-                let highestClassIndex = -1;
-                let secondHighestClassIndex = -1;
+        // Prediction
+        async function predict(input) {
+            refreshInterface(); // Clear previous predictions
 
-                // Find the class with the highest and second-highest probability
-                for (let i = 0; i < predictions.length; i++) {
-                    if (predictions[i].probability > highestProbability) {
-                        secondHighestProbability = highestProbability;
-                        secondHighestClassIndex = highestClassIndex;
-                        highestProbability = predictions[i].probability;
-                        highestClassIndex = i;
-                    } else if (predictions[i].probability > secondHighestProbability) {
-                        secondHighestProbability = predictions[i].probability;
-                        secondHighestClassIndex = i;
+            const predictions = await model.predict(input);
+
+            // Sort predictions and pick the top 3
+            const sortedPredictions = predictions.sort((a, b) => b.probability - a.probability);
+            const topPredictions = sortedPredictions.slice(0, 3);
+
+            // Map predictions to their Excel details
+            const detailedPredictions = topPredictions.map(p => {
+                const match = excelData.find(row => row.classNameName === p.classNameName);
+                return { ...p, details: match || {} };
+            });
+
+            updateLabels(detailedPredictions);
+            updateOtherLabels(predictions);
+        }
+
+        // Update Labels
+        function updateLabels(predictions) {
+            labelContainer = document.getElementById("label-container");
+            labelContainer.innerHTML = "";
+
+            predictions.forEach(prediction => {
+                const carClass = prediction.className;
+                const probability = (prediction.probability * 100).toFixed(2);
+                const details = topData[carClass];
+
+                // Create a card container for each prediction
+                const card = document.createElement("div");
+                card.classList.add("prediction-card");
+
+                // Add the car name and probability
+                const header = document.createElement("h3");
+                header.textContent = `${carClass} - ${probability}%`;
+                card.appendChild(header);
+
+                // Add the details in a structured format if available
+                if (details) {
+                    const detailsList = document.createElement("ul");
+                    for (const key in details) {
+                        const listItem = document.createElement("li");
+                        listItem.textContent = `${key}: ${details[key]}`;
+                        detailsList.appendChild(listItem);
                     }
+                    card.appendChild(detailsList);
+                } else {
+                    const noDetails = document.createElement("p");
+                    noDetails.textContent = "Details not available.";
+                    card.appendChild(noDetails);
                 }
 
-                // Sort predictions alphabetically by className
-                predictions.sort((a, b) => a.className.localeCompare(b.className));
+                // Append the card to the label container
+                labelContainer.appendChild(card);
+            });
+        }
 
-                // Recompute sorted indices for highest and second-highest
-                const sortedHighestIndex = predictions.findIndex(p => p.probability === highestProbability);
-                const sortedSecondHighestIndex = predictions.findIndex(p => p.probability === secondHighestProbability);
+        function updateOtherLabels(predictions) {
+            labelOtherContainer = document.getElementById("other-container");
+            labelOtherContainer.innerHTML = "";
 
-                // Display all predictions with highlighting the highest and second-highest
-                for (let i = 0; i < predictions.length; i++) {
-                    const classPrediction = predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
-                    const div = document.createElement("div");
-                    div.innerHTML = classPrediction;
+            let highestProbability = -1;
+            let secondHighestProbability = -1;
+            let highestClassIndex = -1;
+            let secondHighestClassIndex = -1;
 
-                    // Highlight the highest probability class
-                    if (i === sortedHighestIndex) {
-                        div.classList.add("highlight");
-                    }
-                    // Highlight the second-highest probability class
-                    else if (i === sortedSecondHighestIndex) {
-                        div.classList.add("highlight-second");
-                    }
-
-                    labelOtherContainer.appendChild(div);
+            // Find the class with the highest and second-highest probability
+            for (let i = 0; i < predictions.length; i++) {
+                if (predictions[i].probability > highestProbability) {
+                    secondHighestProbability = highestProbability;
+                    secondHighestClassIndex = highestClassIndex;
+                    highestProbability = predictions[i].probability;
+                    highestClassIndex = i;
+                } else if (predictions[i].probability > secondHighestProbability) {
+                    secondHighestProbability = predictions[i].probability;
+                    secondHighestClassIndex = i;
                 }
             }
 
-            // Load Excel data initially
-            loadExcelFile();
-        </script>
-    </body>
+            // Sort predictions alphabetically by className
+            predictions.sort((a, b) => a.className.localeCompare(b.className));
+
+            // Recompute sorted indices for highest and second-highest
+            const sortedHighestIndex = predictions.findIndex(p => p.probability === highestProbability);
+            const sortedSecondHighestIndex = predictions.findIndex(p => p.probability === secondHighestProbability);
+
+            // Display all predictions with highlighting the highest and second-highest
+            for (let i = 0; i < predictions.length; i++) {
+                const classPrediction = predictions[i].className + " : " + (predictions[i].probability.toFixed(3) * 100) + "%";
+                const div = document.createElement("div");
+                div.innerHTML = classPrediction;
+
+                // Highlight the highest probability class
+                if (i === sortedHighestIndex) {
+                    div.classList.add("highlight");
+                }
+                // Highlight the second-highest probability class
+                else if (i === sortedSecondHighestIndex) {
+                    div.classList.add("highlight-second");
+                }
+
+                labelOtherContainer.appendChild(div);
+            }
+        }
+
+        // Load Excel data initially
+        loadExcelFile();
+    </script>
+</body>
 </html>
