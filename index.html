@@ -8,7 +8,107 @@
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* Your existing styles */
+        body {
+            background-image: url(./background_image.jpeg);
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            background-attachment: fixed;
+            color: white;
+            font-family: 'Sans-serif';
+            text-align: center;
+            margin-bottom: 100px;
+        }
+        h1 {
+            font-size: calc(2em + 12px);
+        }
+        button {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 5px;
+            font-size: calc(1em + 2px);
+            font-weight: bold;
+        }
+        #webcam-container, #image-container {
+            margin-top: 20px;
+        }
+        #image-container img {
+            border: 2px solid lightgrey;
+            border-radius: 10px;
+        }
+        #label-container {
+            display: grid;
+            grid-template-columns: repeat(3, auto); /* Flexible columns */
+            gap: 2px; /* Removed gap between columns */
+            justify-content: center; /* Center-align the grid */
+            align-items: center;
+        }
+        #label-container div {
+            background-color: rgba(211, 211, 211, 0.5);
+            border-radius: 5px;
+            padding: 8px;
+            text-align: left;
+            font-size: 20px;
+            width: 400px;
+            margin: auto;
+            margin-bottom: 5px;
+        }
+        #label-container div.highlight {
+            background-color: red;
+            color: white;
+        }
+
+        #other-container{
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(3, auto); /* Flexible columns */
+            gap: 2px; /* Removed gap between columns */
+            justify-content: center; /* Center-align the grid */
+            align-items: center;
+            margin: auto;
+        }
+        #other-container div{
+            margin: 1px;
+            display: inline-block;
+            justify-content: center;
+            align-items: center;
+            background-color: rgb(169, 169, 169, 0.5);
+            color: white;
+            width: 250px;
+            height: 40px;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+
+        #other-container div.highlight{
+            background-color: rgba(255, 0, 0);
+            color: rgb(255, 255, 255);
+        }
+        #other-container div.highlight-second{
+            background-color: rgb(255, 0, 0, 0.7);
+            color: rgb(255, 255, 255);
+        }
+        @media screen and (max-width:800px){
+            #other-container{
+                grid-template-columns: repeat(2, auto);
+            }
+            #other-container div{
+                width: 220px;
+                height: 35px;
+                font-size: 15px;
+            }
+            #label-container {
+                grid-template-columns: repeat(1, auto);
+            }
+            #label-container div {
+                font-size: 18px;
+                width: 350px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -71,8 +171,17 @@
             window.requestAnimationFrame(webcamLoop);
         }
 
+        // Refresh Interface
+        function refreshInterface() {
+            // Clear previous predictions
+            document.getElementById("label-container").innerHTML = "";
+            document.getElementById("other-container").innerHTML = "";
+            document.getElementById("image-container").innerHTML = ""; // Clear the image container
+        }
+
         // Upload Image
         async function uploadImage() {
+            refreshInterface(); // Clear previous predictions
             await loadExcelFile();
             await loadModel();
             document.getElementById('image-upload').click();
@@ -101,17 +210,8 @@
             }
         }
 
-        // Refresh Interface
-        function refreshInterface() {
-            // Clear previous predictions
-            document.getElementById("label-container").innerHTML = "";
-            document.getElementById("other-container").innerHTML = "";
-        }
-
         // Prediction
         async function predict(input) {
-            refreshInterface(); // Clear previous predictions
-
             const predictions = await model.predict(input);
 
             // Sort predictions and pick the top 3
